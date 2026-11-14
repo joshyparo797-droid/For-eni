@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>For Eni 💌</title>
+<link href="https://fonts.googleapis.com/css2?family=Pinyon+Script&family=Lora:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{--sky1:#0b1033;--sky2:#2a1f52;--rose:#f3b8c8;--gold:#f6d68a;--paper:#fbf6ee;--ink:#2e2540;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:radial-gradient(ellipse at 50% 120%,#5b3a7a 0,var(--sky2) 40%,var(--sky1) 100%);color:#fff;font-family:'Lora',Georgia,serif;overflow:hidden}
+canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+.stage{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;transition:opacity .9s}
+.hidden{opacity:0;pointer-events:none}
+.hint{margin-top:34px;font-style:italic;color:var(--rose);animation:pulse 2.4s infinite}
+@keyframes pulse{50%{opacity:.4}}
+/* envelope */
+.env{position:relative;width:min(78vw,340px);aspect-ratio:1.5;cursor:pointer;background:none;border:0;padding:0;transition:transform .35s cubic-bezier(.3,1.6,.5,1),filter .35s;filter:drop-shadow(0 18px 30px #0008);animation:float 4s ease-in-out infinite}
+.env:hover,.env:focus-visible{transform:translateY(-10px) rotate(-2deg) scale(1.05);filter:drop-shadow(0 0 28px #f3b8c8aa) drop-shadow(0 18px 30px #0008);outline:none}
+@keyframes float{50%{translate:0 -6px}}
+.env .body{position:absolute;inset:0;background:linear-gradient(135deg,#f7dfe5,#f0c6d3);border-radius:8px}
+.env .flap{position:absolute;left:0;right:0;top:0;height:58%;background:linear-gradient(#f9e6ea,#eab3c4);clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:top;transition:transform .8s .1s,z-index 0s .4s;z-index:3;border-radius:8px 8px 0 0}
+.env .front{position:absolute;inset:0;z-index:2;background:linear-gradient(to top right,#f2c9d5 49.5%,transparent 50%) left/50% 100% no-repeat,linear-gradient(to top left,#f4d3dc 49.5%,transparent 50%) right/50% 100% no-repeat;border-radius:8px}
+.env .seal{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff9fb5,#c2395d);z-index:4;display:grid;place-items:center;font-size:20px;box-shadow:0 3px 8px #0006;transition:opacity .3s}
+.env .card{position:absolute;left:8%;right:8%;top:8%;bottom:8%;background:var(--paper);border-radius:4px;z-index:1;transition:transform .9s .5s}
+.env.open{animation:none;pointer-events:none}
+.env.open .flap{transform:rotateX(180deg);z-index:0}
+.env.open .seal{opacity:0}
+.env.open .card{transform:translateY(-70%)}
+/* greeting */
+.hb{font-family:'Pinyon Script',cursive;font-size:clamp(3rem,15vw,7rem);line-height:1.1;color:var(--gold);text-shadow:0 0 24px #f6d68a88;margin:0}
+.hb span{display:inline-block;opacity:0;animation:shoot .9s forwards cubic-bezier(.2,.8,.2,1)}
+@keyframes shoot{from{opacity:0;transform:translate(220px,-160px) scale(.3) rotate(25deg);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
+.btn{margin-top:36px;padding:14px 30px;border-radius:40px;border:1px solid var(--gold);background:#f6d68a1a;color:var(--gold);font:italic 1.1rem 'Lora',serif;cursor:pointer;opacity:0;transition:background .3s,transform .3s}
+.btn.show{opacity:1;transition:opacity 1.2s}
+.btn:hover,.btn:focus-visible{background:#f6d68a40;transform:scale(1.05);outline:none}
+/* letter */
+#letter{position:fixed;inset:0;overflow-y:auto;padding:24px 14px 80px;opacity:0;pointer-events:none;transition:opacity 1s;-webkit-overflow-scrolling:touch}
+#letter.show{opacity:1;pointer-events:auto}
+.paper{max-width:640px;margin:0 auto;background:var(--paper);color:var(--ink);border-radius:6px;padding:40px 26px 48px;box-shadow:0 20px 60px #0009;transform:translateY(40px);transition:transform 1.2s}
+#letter.show .paper{transform:none}
+.paper h1{font-family:'Pinyon Script',cursive;font-weight:400;font-size:clamp(2.4rem,10vw,3.6rem);margin:0 0 24px;color:#b23a62;text-align:center}
+.paper p{font-size:1.06rem;line-height:1.8;margin:0 0 1.1em}
+.paper p.q{font-style:italic;padding-left:14px;border-left:3px solid var(--rose)}
+.paper p.s{text-align:right;font-style:italic;margin-top:2em}
+@media(prefers-reduced-motion:reduce){.env,.hint{animation:none}.hb span{animation-duration:.01s}}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div class="stage" id="s1">
+  <button class="env" id="env" aria-label="Open the envelope">
+    <div class="body"></div><div class="card"></div><div class="front"></div><div class="flap"></div><div class="seal">💌</div>
+  </button>
+  <div class="hint">Something is waiting for you, Eni. Tap the envelope.</div>
+</div>
+
+<div class="stage hidden" id="s2">
+  <h1 class="hb" id="hb"></h1>
+  <button class="btn" id="read">Read your letter</button>
+</div>
+
+<div id="letter"><div class="paper"><h1>Happy Birthday, Eni.</h1><div id="txt"></div></div></div>
+
+<script>
+const T=`I honestly don’t know where to begin.
+Funny enough, I had initially planned to give you that first journal on your birthday. I had imagined it being something you’d wake up to, something you could read and perhaps understand a little more about the person behind all those messages, calls, random conversations, and sometimes unnecessarily long paragraphs. I wanted it to be my own little way of making your birthday different.
+But somehow, I ended up sending it before today. And perhaps that was okay, because I realised there were still so many things I hadn’t said. So many things that couldn’t quite fit into the story I had written about how we met and how our friendship gradually became something I genuinely cherish.
+Perhaps I had to write this one for you now.
+Because today isn’t just another day. It’s your birthday. And if there is one day I would want you to feel especially appreciated, it is today.
+Eni, happy birthday.
+I hope you wake up knowing that your existence is worth celebrating. I hope you receive the kind of happiness that doesn’t disappear when the day ends. I hope you smile so much today that, even when you eventually lay your head down to sleep, you still have reasons to smile about how your day went.
+And I hope you understand that somewhere, in another part of the world, there is someone who is genuinely grateful that you were born.
+I know that sounds like a big statement, but I mean it.
+You see, I have been thinking about how strange life can be. There are billions of people in the world, each living their own lives, following different paths, having different experiences, and somehow, in the middle of all that, two people who might never have crossed paths physically ended up meeting on a platform like Substack.
+Neither of us probably knew what that little interaction would eventually become.
+You were just someone I met online.
+And I was just another person on the internet.
+But somewhere between those first conversations, the exchange of thoughts, the random discussions, and eventually moving to WhatsApp, you became someone I genuinely looked forward to hearing from.
+I don’t think you fully understand how much that meant to me.
+Before you, my social life was practically a quiet room. My phone had very little happening on it, and there were days when I would look at it without having anyone I particularly wanted to talk to. I had thoughts I wanted to share, experiences I wanted to discuss, and so many conversations that existed only in my head or in the notes on my phone.
+And then I met you.
+Suddenly, there was someone I could send something to. Someone whose opinion I was curious about. Someone I could have a disagreement with and still want to continue talking to afterwards. Someone whose messages I sometimes found myself anticipating.
+And I think that is one of the things I appreciate most about you.
+You became a reminder that meaningful connections can still happen when you least expect them.
+I know we have our individual lives. I know we have different personalities, different opinions, different responsibilities, and sometimes completely different ways of looking at things. But despite all of that, I have come to appreciate the bond we have developed.
+And I hope you never underestimate it.
+I don’t think you’re just another friend I happen to text. I don’t think of you as simply a girl I met online. I think of you as someone I have genuinely grown fond of, someone whose presence holds a particular place in my life.
+And no, I don’t mean that romantically. I think people sometimes forget that there are forms of affection that have absolutely nothing to do with dating. That you can care deeply about someone, miss their presence, appreciate their thoughts, become attached to their company, and still have it be entirely about friendship.
+I think ours is one of those connections I would describe as a bond rather than just an ordinary friendship.
+A bond between two people who have found something worth appreciating in each other.
+And honestly, I am grateful for it.
+I appreciate you, Eni. Not just for the way you make me feel, but for the person you are.
+Your thoughts, your personality, your opinions, your expressions, the things you love, the things you dislike, the things we agree on, and even the things we could probably debate about for hours.
+I appreciate the person I get to discover through our conversations.
+Sometimes, I know I can be a little extra. Perhaps I express things more than necessary, perhaps I attach more meaning to certain moments than you realise, and perhaps I occasionally make a big deal out of things that seem ordinary.
+But I hope you understand that it comes from a place of genuine appreciation.
+It isn’t about trying to prove something to you. It isn’t about expecting you to do the same things in return. And it certainly isn’t about making you feel that you owe me anything.
+I just genuinely value you.
+And sometimes, when someone has become that important to you as a friend, you find yourself wanting to make sure they know it.
+I want you to know that even the little things matter to me.
+Sometimes, you say something casually, and I find myself thinking about it long after our conversation has ended. Sometimes, we have a random call, and I appreciate it more than I probably express. Sometimes, you send a message that might seem like nothing particularly special to you, but it becomes one of those little moments I enjoy.
+I don’t expect you to understand every emotion behind every message I send.
+I just hope you never doubt that the appreciation is genuine.
+And today, I want to turn some of that appreciation towards you.
+Because while I have spent so much time writing about what your presence has meant to me, I also want to celebrate the person whose birthday it is.
+Eni, I hope this new chapter of your life is beautiful.
+I hope you experience growth in ways that surprise you.
+I hope you become more confident in yourself, your abilities, and the things you want to accomplish. I hope you discover opportunities that take you closer to the life you imagine for yourself.
+I hope university becomes an experience worth remembering.
+I hope you meet people who introduce you to new perspectives, friendships that bring out beautiful parts of you, and experiences that teach you things you could never have learnt by simply staying where you are.
+I hope you find your people.
+People who listen when you speak. People who respect your opinions even when they disagree. People who celebrate your achievements without feeling threatened by them. People who make you feel comfortable enough to be yourself.
+I hope you never have to shrink yourself to fit into places where you deserve to be accepted.
+I hope you never question your worth because of someone else’s inability to recognise it.
+And on the days when you feel like you aren’t doing enough, I hope you remember that life isn’t a race against everyone around you.
+You are allowed to grow at your own pace.
+You are allowed to take breaks.
+You are allowed to change your mind, make mistakes, start again, and discover new things about yourself.
+You don’t have to have everything figured out.
+I hope you give yourself the same kindness you would readily give someone you care about.
+I hope you are patient with yourself.
+And above everything else, I hope you never lose the ability to find happiness in the little things.
+The random laughter, the beautiful skies, the unexpected good news, the conversations that make you forget about time, and those ordinary days that eventually become some of your favourite memories.
+May life give you plenty of those.
+And speaking of skies, I hope you remember that little conversation we had about mine.
+You probably thought I simply loved looking at the sky because of how beautiful it appears.
+But there is so much more to it for me.
+Sometimes, I look at it and get lost in thoughts I cannot properly explain. Sometimes, I imagine myself somewhere beyond everything I can see. Sometimes, it becomes a quiet place for all the things I cannot put into words.
+And if there is one thing I would wish for you, it is that your own sky remains clear.
+That even when life becomes cloudy, you find the strength to keep looking forward.
+That you have reasons to smile even when things aren’t going according to plan.
+And that you never lose sight of the beautiful possibilities waiting ahead of you.
+May your sky be clear, your smile bright, and may you be blessed for the moments you gave me.
+I hope this birthday marks the beginning of a year filled with beautiful things.
+Now, there is something I want to say about us.
+I know life is going to change in many ways. You are going into university, and there will be new experiences, new people, new responsibilities, and probably days when you barely have time to catch your breath.
+I am genuinely excited for you.
+But I also hope we get to keep building this friendship along the way.
+I hope we don’t become those two people who once had so much to talk about but eventually have to struggle to find something to say.
+I hope the calls continue.
+I hope the random messages continue.
+I hope we still have our disagreements, our long discussions, our silly moments, and those conversations that somehow become deeper than either of us intended.
+I hope there are days when you have something interesting to tell me and I am still one of the people you think of.
+I hope I can tell you about my own experiences, too.
+And I hope that one day, we actually get to meet.
+Not through a screen, not through a call, but somewhere in the real world, where we can finally put all these online conversations into physical memories.
+I imagine us laughing about how we first met and perhaps remembering some of the things we have said to each other.
+I hope that day comes.
+But even before then, I hope you know that I don’t measure the value of our friendship by how many hours we spend talking.
+I understand that people have lives outside their phones.
+I understand that being busy doesn’t mean someone has stopped caring.
+And I want us to have the kind of friendship where we can both grow, experience life, and still find our way back to each other.
+I don’t want you to feel pressured to remain the same person or maintain the same routine just because I enjoy the way things are now.
+I want you to live.
+I want you to experience things.
+I want you to become everything you hope to become.
+And I hope that, somewhere in all those experiences, there will still be room for our friendship.
+Because I would really love that.
+There is a sentence from my previous journal that I keep thinking about:
+>“For a moment, you cherished me; I shall remember that for a lifetime.”
+But today, I don’t want to write as though I am already saying goodbye to something.
+Today, I want to celebrate the fact that we are here.
+That we are still getting to know each other.
+That there are still conversations waiting to happen, opinions waiting to be challenged, calls waiting to be made, and memories we haven’t created yet.
+I don’t want to spend this day worrying about what could eventually change.
+I want to appreciate what we have.
+And I hope you do, too.
+Eni, thank you.
+Thank you for the conversations.
+Thank you for the calls.
+Thank you for allowing me to share some of the things I write, especially those pieces that had remained tucked away in my notes for so long.
+Thank you for the laughter, the disagreements, the different perspectives, and the moments when we simply got to be two people talking about life.
+Thank you for being someone I have genuinely enjoyed getting to know.
+You might not always realise how much the little things mean to someone else, but I hope today reminds you that your presence can make a difference in someone’s life without you even trying.
+And I hope you receive that same appreciation from the people around you.
+I hope you are celebrated properly today.
+I hope someone makes you laugh until your stomach hurts.
+I hope you receive messages that make you smile.
+I hope you eat something delicious, take beautiful pictures, and create memories that will make you happy whenever you remember this birthday.
+And when the day eventually comes to an end, I hope you go to bed feeling loved, appreciated, and grateful for another year of life.
+You deserve beautiful things, Eni.
+Not just today.
+Not just because it is your birthday.
+But because you are a person who deserves to experience kindness, happiness, growth, and genuine connections throughout her life.
+And if you ever forget how appreciated you are, I hope you can return to these words and remember that someone once took the time to write them because your presence genuinely mattered to him.
+I don’t know what the future holds for either of us.
+I don’t know how many birthdays we will get to celebrate as friends.
+But I hope this isn’t the last time I get to write something for you.
+I hope next year brings another opportunity to remind you how much I appreciate you.
+And perhaps the year after that, too.
+I hope we get to look back and laugh at how much has changed, how much we have grown, and how a friendship that began with a simple online conversation became something we were both glad to have kept.
+For now, though, I just want you to enjoy your day.
+Don’t spend it worrying about tomorrow.
+Don’t allow the little imperfections of life to steal today’s happiness.
+Celebrate yourself.
+Celebrate how far you have come.
+Celebrate the person you are and the person you are still becoming.
+And please, smile a little more today.
+You have another year to live, another chapter to write, more people to meet, more things to discover, and so many beautiful possibilities ahead of you.
+Happy birthday once again, Eni.
+I am genuinely glad our paths crossed.
+And if I could go back to that day when we first met on Substack, knowing everything I know now about the conversations we would eventually have, I would still be glad I said hello.
+So here’s to you.
+To your life.
+To your growth.
+To your dreams.
+To the friendships you have, the ones you will build, and the beautiful experiences waiting for you.
+And, if life permits, here’s to many more chapters of this rather unexpected friendship of ours.
+I hope the world is kind to you. I hope life surprises you beautifully. And I hope you never run out of reasons to smile.
+Happy birthday, Eni. ❤️
+P.S. If you ever find yourself rereading this on an ordinary day, I hope you smile just as much as you did today. Because these words aren’t only meant for your birthday. They’re a little reminder that you are appreciated on the ordinary days, too.
+>With genuine affection,
+>Your friend.`;
+const txt=document.getElementById('txt');
+T.split('\n').forEach(l=>{const p=document.createElement('p');if(l[0]=='>'){p.className=l.includes('cherished')?'q':'s';l=l.slice(1)}p.textContent=l;txt.appendChild(p)});
+
+/* sky */
+const cv=document.getElementById('c'),x=cv.getContext('2d');let W,H,stars=[],sh=[];
+function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;stars=Array.from({length:110},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.4+.3,p:Math.random()*6}))}
+rs();addEventListener('resize',rs);
+function shoot(){sh.push({x:Math.random()*W*.9+W*.1,y:Math.random()*H*.4,v:9+Math.random()*6,l:0})}
+let burst=false,t=0;
+(function loop(){t+=.03;x.clearRect(0,0,W,H);
+stars.forEach(s=>{x.globalAlpha=.4+.6*Math.abs(Math.sin(t+s.p));x.fillStyle='#fff';x.beginPath();x.arc(s.x,s.y,s.r,0,7);x.fill()});
+x.globalAlpha=1;
+if(Math.random()<(burst?.12:.008))shoot();
+sh=sh.filter(s=>s.l<70);sh.forEach(s=>{s.x-=s.v;s.y+=s.v*.6;s.l++;const g=x.createLinearGradient(s.x,s.y,s.x+90,s.y-54);g.addColorStop(0,'#fff');g.addColorStop(1,'#fff0');x.strokeStyle=g;x.lineWidth=2;x.beginPath();x.moveTo(s.x,s.y);x.lineTo(s.x+90,s.y-54);x.stroke()});
+requestAnimationFrame(loop)})();
+
+/* flow */
+const s1=document.getElementById('s1'),s2=document.getElementById('s2'),env=document.getElementById('env'),hb=document.getElementById('hb'),btn=document.getElementById('read'),L=document.getElementById('letter');
+env.onclick=()=>{
+  env.classList.add('open');burst=true;
+  setTimeout(()=>{s1.classList.add('hidden');s2.classList.remove('hidden');
+    'Happy Birthday,|Eni ✨'.split('|').forEach((w,i,a)=>{
+      [...w].forEach((ch,j)=>{const s=document.createElement('span');s.textContent=ch==' '?'\u00a0':ch;s.style.animationDelay=(i*1.1+j*.08)+'s';hb.appendChild(s)});
+      if(i<a.length-1)hb.appendChild(document.createElement('br'));
+    });
+    setTimeout(()=>btn.classList.add('show'),3000);
+  },1700);
+};
+btn.onclick=()=>{s2.classList.add('hidden');L.classList.add('show');burst=false;L.scrollTop=0};
+</script>
+</body>
+</html>
